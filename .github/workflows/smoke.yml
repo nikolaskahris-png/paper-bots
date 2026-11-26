@@ -1,0 +1,16 @@
+name: smoke-bybit-eu
+on: workflow_dispatch
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: kline BTCUSDC from api.bybit.eu
+        run: |
+          code=$(curl -sS -o body.json -w '%{http_code}' --max-time 20 \
+            'https://api.bybit.eu/v5/market/kline?category=spot&symbol=BTCUSDC&interval=60&limit=3') || code="curl_failed"
+          echo "HTTP status: $code"
+          echo "runner egress IP info:"; curl -sS --max-time 10 https://ipinfo.io/json | grep -E '"(country|org)"' || true
+          echo "body (first 400 chars):"; head -c 400 body.json; echo
+          echo "## api.bybit.eu kline BTCUSDC: HTTP $code" >> "$GITHUB_STEP_SUMMARY"
+          [ "$code" = "200" ]
